@@ -1,0 +1,38 @@
+name: Deploy to GitHub Pages
+
+permissions:
+  contents: write
+  pages: write
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          python-version: 3.11
+          miniforge-variant: Mambaforge
+          environment-file: environment.yml
+      - name: Install requirements and test nbdev
+        run: |
+          set -ux
+          pip install -e '.[dev]'
+          nbdev_docs
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ github.token }}
+          force_orphan: true
+          publish_dir: ./_docs
+          # The following lines assign commit authorship to the official GH-Actions bot for deploys to `gh-pages` branch.
+          # You can swap them out with your own user credentials.
+          user_name: github-actions[bot]
+          user_email: 41898282+github-actions[bot]@users.noreply.github.com
+
